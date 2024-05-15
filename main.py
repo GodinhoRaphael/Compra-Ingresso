@@ -1,21 +1,19 @@
-itens = [
-  {"nome": "caneta", "valor": 70.0, "estoque": 200},
-  {"nome": "lápis", "valor": 0.80, "estoque": 47},
-  {"nome": "caderno", "valor": 80.0, "estoque": 100},
-  {"nome": "borracha", "valor": 1.20, "estoque": 60}
-]
+def converter_listas_para_dict(chaves, valores):
+  return dict(zip(chaves, valores))
 
-itens_em_promocao = []
+def principal():
+  entrada_chaves = input("Insira as chaves separadas por espaços: ")
+  chaves = entrada_chaves.split()
 
-for item in itens:
-  if item["valor"] > 60.0 and item["estoque"] > 50:
-      novo_valor = item["valor"] * 0.8
-      item_em_promocao = {
-          "nome": item["nome"],
-          "valor": (item["valor"], novo_valor),
-          "estoque": item["estoque"]
-      }
-      itens_em_promocao.append(item_em_promocao)
+  entrada_valores = input("Insira os valores separados por espaços: ")
+  valores = entrada_valores.split()
 
-for item in itens_em_promocao:
-  print(item)
+  if len(chaves) != len(valores):
+      print("O número de chaves deve ser igual ao número de valores.")
+      return
+
+  dicionario = converter_listas_para_dict(chaves, valores)
+  print("Dicionário resultante:", dicionario)
+
+if __name__ == "__main__":
+  principal()

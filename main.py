@@ -1,11 +1,34 @@
-def remover_itens_estoque(inventario, quantidade_minima):
-  inventario_atualizado = {item: quantidade for item, quantidade in inventario.items() if quantidade >= quantidade_minima}
-  return inventario_atualizado
+import os
 
-inventario = {"mouse": 26, "monitor": 13, "Pendrive": 83, "teclado": 5, "fone de ouvido": 40}
-quantidade_minima = 10
+def criar_arquivo_entrada(arquivo):
+    if not os.path.exists(arquivo):
+        with open(arquivo, 'w', encoding='utf-8') as file:
+            file.write("Exemplo de texto para contar palavras. Palavra palavra Palavra palavra.")
+            print("Arquivo de entrada criado:", arquivo)
 
-inventario_atualizado = remover_itens_estoque(inventario, quantidade_minima)
+def contar_palavras(arquivo):
+    contagem = {}
+    with open(arquivo, 'r', encoding='utf-8') as file:
+        for linha in file:
+            palavras = linha.split()
+            for palavra in palavras:
+                palavra = palavra.strip('.,!?;:').lower()
+                contagem[palavra] = contagem.get(palavra, 0) + 1
+    return contagem
 
-print("Inventário atualizado:")
-print(inventario_atualizado)
+def escrever_resultados(contagem, arquivo_saida):
+    with open(arquivo_saida, 'w', encoding='utf-8') as file:
+        palavras_ordenadas = sorted(contagem.items(), key=lambda x: x[1], reverse=True)
+        for palavra, ocorrencias in palavras_ordenadas:
+            file.write(f"{palavra}: {ocorrencias}\n")
+
+arquivo_entrada = "texto.txt"
+arquivo_saida = "resultados.txt"
+
+criar_arquivo_entrada(arquivo_entrada)
+
+contagem_palavras = contar_palavras(arquivo_entrada)
+
+escrever_resultados(contagem_palavras, arquivo_saida)
+
+print("Resultados foram escritos no arquivo:", arquivo_saida)

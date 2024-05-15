@@ -1,160 +1,74 @@
-import sqlite3
-import string
 import random
 
-def criptografar(senha):
-    """
-    Criptografa a senha usando a cifra de César.
+questoes = [
+    ("Qual é a capital da Austrália?", ["a) Sydney", "b) Canberra", "c) Melbourne", "d) Brisbane"]),
+    ("Quem pintou a Mona Lisa?", ["a) Michelangelo", "b) Leonardo da Vinci", "c) Pablo Picasso", "d) Vincent van Gogh"]),
+    ("Qual é o maior planeta do nosso sistema solar?", ["a) Terra", "b) Marte", "c) Júpiter", "d) Saturno"]),
+    ("Qual é a montanha mais alta do mundo?", ["a) K2", "b) Monte Everest", "c) Mont Blanc", "d) Kilimanjaro"]),
+    ("Quem escreveu 'Romeu e Julieta'?", ["a) William Shakespeare", "b) Jane Austen", "c) Charles Dickens", "d) F. Scott Fitzgerald"]),
+    ("Qual é o elemento químico com o símbolo 'Fe'?", ["a) Ferro", "b) Cobre", "c) Ouro", "d) Prata"]),
+    ("Qual é o maior oceano do mundo?", ["a) Oceano Atlântico", "b) Oceano Índico", "c) Oceano Pacífico", "d) Oceano Ártico"]),
+    ("Quem foi o primeiro homem a pisar na lua?", ["a) Neil Armstrong", "b) Buzz Aldrin", "c) Yuri Gagarin", "d) Alan Shepard"]),
+    ("Qual é o animal terrestre mais rápido?", ["a) Guepardo", "b) Lebre", "c) Antílope", "d) Leão"]),
+    ("Quem é o autor de 'A Origem das Espécies'?", ["a) Charles Darwin", "b) Isaac Newton", "c) Albert Einstein", "d) Galileu Galilei"]),
+    ("Qual é o rio mais longo do mundo?", ["a) Rio Amazonas", "b) Rio Nilo", "c) Rio Yangtze", "d) Rio Mississippi"]),
+    ("Quem foi o primeiro presidente dos Estados Unidos?", ["a) George Washington", "b) Abraham Lincoln", "c) Thomas Jefferson", "d) John Adams"]),
+    ("Qual é a capital do Canadá?", ["a) Toronto", "b) Vancouver", "c) Ottawa", "d) Montreal"]),
+    ("Qual é o maior deserto do mundo?", ["a) Deserto do Saara", "b) Deserto de Gobi", "c) Deserto da Arábia", "d) Deserto de Kalahari"]),
+    ("Quem foi o primeiro homem a voar em um avião?", ["a) Orville Wright", "b) Wilbur Wright", "c) Amelia Earhart", "d) Alberto Santos Dumont"])
+]
 
-    Args:
-        senha (str): A senha a ser criptografada.
+respostas = [
+    "b",
+    "b",
+    "c",
+    "b",
+    "a",
+    "a",
+    "c",
+    "a",
+    "a",
+    "a",
+    "a",
+    "a",
+    "c",
+    "a",
+    "b"
+]
 
-    Returns:
-        str: A senha criptografada.
-    """
-    chave = 3  
-    alfabeto = string.ascii_letters + string.digits + string.punctuation
-    senha_criptografada = ''
-    for char in senha:
-        if char in alfabeto:
-            indice = (alfabeto.index(char) + chave) % len(alfabeto)
-            senha_criptografada += alfabeto[indice]
+rodadas_maximas = 3
+rodadas = 0
+
+#Loop das questoes
+while rodadas < rodadas_maximas:
+    resposta = input('Está pronto para iniciar o jogo de trivia? [a]Sim [b]Não\n')
+    acertos = 0
+    if resposta == 'a':
+        for _ in range(5):
+            #Seleciona qual questao e resposta vai ser utilizado.
+            item = random.randint(0, 14)
+            questao_aleatoria, opcoes_resposta = questoes[item]
+            print(questao_aleatoria)
+            for opcao in opcoes_resposta:
+                print(opcao)
+            resposta = input('\nResposta: ')
+            print('Resposta correta: ', respostas[item])
+            #Verificar se a resposta esta correta
+            if resposta == respostas[item]:
+                acertos += 1
+                print('Certa resposta!')
+            else:
+                print('Errouu!')
+        if acertos == 5:
+            if rodadas < 2:
+                print('Parabéns! Acertou todas as', acertos, '\nIniciando nova rodada(3 no total).....')
+                rodadas += 1
+            else:
+                print('Parabéns! Jogo finalizado.')
+                break
         else:
-            senha_criptografada += char
-    return senha_criptografada
+            print('Quantidade de acertos: ', acertos, '\n Reiniciando o jogo....')
 
-def descriptografar(senha_criptografada):
-    """
-    Descriptografa a senha usando a cifra de César.
-
-    Args:
-        senha_criptografada (str): A senha criptografada.
-
-    Returns:
-        str: A senha descriptografada.
-    """
-    chave = 3  
-    alfabeto = string.ascii_letters + string.digits + string.punctuation
-    senha = ''
-    for char in senha_criptografada:
-        if char in alfabeto:
-            indice = (alfabeto.index(char) - chave) % len(alfabeto)
-            senha += alfabeto[indice]
-        else:
-            senha += char
-    return senha
-
-def gerar_senha(comprimento):
-    """
-    Gera uma senha aleatória com o comprimento especificado.
-
-    Args:
-        comprimento (int): O comprimento da senha a ser gerada.
-
-    Returns:
-        str: A senha gerada.
-    """
-    caracteres = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(caracteres) for _ in range(comprimento))
-
-def conectar_bd():
-    """
-    Cria uma conexão com o banco de dados.
-
-    Returns:
-        sqlite3.Connection: A conexão com o banco de dados.
-    """
-    conexao = sqlite3.connect('senhas.db')
-    return conexao
-
-def criar_tabela(conexao):
-    """
-    Cria a tabela de senhas no banco de dados.
-
-    Args:
-        conexao (sqlite3.Connection): A conexão com o banco de dados.
-    """
-    cursor = conexao.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS senhas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            servico TEXT NOT NULL,
-            username TEXT NOT NULL,
-            senha TEXT NOT NULL
-        );
-    ''')
-    conexao.commit()
-
-def inserir_senha(conexao, servico, username, senha):
-    """
-    Insere uma nova senha no banco de dados.
-
-    Args:
-        conexao (sqlite3.Connection): A conexão com o banco de dados.
-        servico (str): O nome do serviço.
-        username (str): O username associado à senha.
-        senha (str): A senha a ser inserida.
-    """
-    senha_criptografada = criptografar(senha)
-    cursor = conexao.cursor()
-    cursor.execute('''
-        INSERT INTO senhas (servico, username, senha)
-        VALUES (?, ?, ?)
-    ''', (servico, username, senha_criptografada))
-    conexao.commit()
-
-def consultar_senha(conexao, servico, palavra_chave):
-    """
-    Consulta a senha no banco de dados.
-
-    Args:
-        conexao (sqlite3.Connection): A conexão com o banco de dados.
-        servico (str): O nome do serviço para o qual deseja-se consultar a senha.
-        palavra_chave (str): A palavra-chave para acesso às senhas.
-    """
-    if palavra_chave != 'Roma':
-        print("Palavra-chave incorreta.")
-        return
-
-    cursor = conexao.cursor()
-    cursor.execute('''
-        SELECT username, senha FROM senhas WHERE servico = ?
-    ''', (servico,))
-    resultado = cursor.fetchone()
-
-    if resultado:
-        username, senha_criptografada = resultado
-        senha = descriptografar(senha_criptografada)
-        print(f"Username: {username}")
-        print(f"Senha: {senha}")
     else:
-        print("Serviço não encontrado.")
-
-def main():
-    conexao = conectar_bd()
-    criar_tabela(conexao)
-
-    while True:
-        print('-------GERADOR DE SENHAS-------')
-        opcao = input('[1] Gerar nova senha\n[2] Consultar senha\n[3] Sair\nEscolha uma opção: ')
-
-        if opcao == '1':
-            servico = input("Nome do serviço: ")
-            username = input("Username: ")
-            comprimento = int(input("Comprimento da senha: "))
-            senha = gerar_senha(comprimento)
-            inserir_senha(conexao, servico, username, senha)
-            print("Senha gerada com sucesso")
-        elif opcao == '2':
-            servico = input("Nome do serviço: ")
-            palavra_chave = input("Digite a palavra-chave: ")
-            consultar_senha(conexao, servico, palavra_chave)
-        elif opcao == '3':
-            print('Saindo...')
-            break
-        else:
-            print('Opção inválida. Por favor, escolha uma opção válida.')
-
-
-if __name__ == "__main__":
-    main()
+        print('Poxa vida....')
+        break

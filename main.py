@@ -1,165 +1,160 @@
 import sqlite3
+import string
+import random
 
-def criar_tabela():
+def criptografar(senha):
     """
-    Cria a tabela 'transacoes' no banco de dados 'financas.db', se ela não existir.
+    Criptografa a senha usando a cifra de César.
 
-    A tabela 'transacoes' possui os seguintes campos:
-    - id (INTEGER): Chave primária da transação.
-    - tipo (TEXT): Tipo da transação, pode ser 'receita' ou 'despesa'.
-    - descricao (TEXT): Descrição da transação.
-    - valor (REAL): Valor da transação.
-    """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS transacoes (
-                    id INTEGER PRIMARY KEY,
-                    tipo TEXT,
-                    descricao TEXT,
-                    valor REAL
-                )''')
-    conn.commit()
-    conn.close()
+    Args:
+        senha (str): A senha a ser criptografada.
 
-def adicionar_transacao(tipo, descricao, valor):
+    Returns:
+        str: A senha criptografada.
     """
-    Adiciona uma transação ao banco de dados.
+    chave = 3  
+    alfabeto = string.ascii_letters + string.digits + string.punctuation
+    senha_criptografada = ''
+    for char in senha:
+        if char in alfabeto:
+            indice = (alfabeto.index(char) + chave) % len(alfabeto)
+            senha_criptografada += alfabeto[indice]
+        else:
+            senha_criptografada += char
+    return senha_criptografada
 
-    Parâmetros:
-    - tipo (str): Tipo da transação, pode ser 'receita' ou 'despesa'.
-    - descricao (str): Descrição da transação.
-    - valor (float): Valor da transação.
+def descriptografar(senha_criptografada):
     """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''INSERT INTO transacoes (tipo, descricao, valor) VALUES (?, ?, ?)''', (tipo, descricao, valor))
-    conn.commit()
-    conn.close()
+    Descriptografa a senha usando a cifra de César.
 
-def obter_saldo():
-    """
-    Obtém o saldo atual da conta somando todas as transações registradas no banco de dados.
+    Args:
+        senha_criptografada (str): A senha criptografada.
 
-    Retorna:
-    - saldo (float): Saldo atual da conta.
+    Returns:
+        str: A senha descriptografada.
     """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''SELECT SUM(valor) FROM transacoes''')
-    saldo = c.fetchone()[0]
-    conn.close()
-    return saldo if saldo else 0
+    chave = 3  
+    alfabeto = string.ascii_letters + string.digits + string.punctuation
+    senha = ''
+    for char in senha_criptografada:
+        if char in alfabeto:
+            indice = (alfabeto.index(char) - chave) % len(alfabeto)
+            senha += alfabeto[indice]
+        else:
+            senha += char
+    return senha
 
-def relatorio_gastos_por_categoria():
+def gerar_senha(comprimento):
     """
-    Gera um relatório de gastos por categoria baseado nas descrições das transações.
+    Gera uma senha aleatória com o comprimento especificado.
 
-    Retorna:
-    - relatorio (list): Lista de tuplas, onde cada tupla contém a descrição da categoria e o total de gastos associado a ela.
-    """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''SELECT descricao, SUM(valor) FROM transacoes WHERE valor < 0 GROUP BY descricao''')
-    relatorio = c.fetchall()
-    conn.close()
-    return relatorio
+    Args:
+        comprimento (int): O comprimento da senha a ser gerada.
 
-def relatorio_receitas():
+    Returns:
+        str: A senha gerada.
     """
-    Gera um relatório de todas as receitas registradas no banco de dados.
+    caracteres = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(caracteres) for _ in range(comprimento))
 
-    Retorna:
-    - receitas (list): Lista de tuplas, onde cada tupla representa uma receita com os campos: id, tipo, descricao e valor.
+def conectar_bd():
     """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''SELECT * FROM transacoes WHERE tipo = 'receita' ORDER BY id''')
-    receitas = c.fetchall()
-    conn.close()
-    return receitas
+    Cria uma conexão com o banco de dados.
 
-def obter_transacoes():
+    Returns:
+        sqlite3.Connection: A conexão com o banco de dados.
     """
-    Obtém todas as transações registradas no banco de dados e calcula o total de transações.
+    conexao = sqlite3.connect('senhas.db')
+    return conexao
 
-    Retorna:
-    - transacoes (list): Lista de tuplas, onde cada tupla representa uma transação com os campos: id, tipo, descricao e valor.
-    - total (float): Total de todas as transações.
+def criar_tabela(conexao):
     """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''SELECT * FROM transacoes ORDER BY id''')
-    transacoes = c.fetchall()
-    total = sum(transacao[3] for transacao in transacoes)
-    conn.close()
-    return transacoes, total
+    Cria a tabela de senhas no banco de dados.
 
-def verificar_saldo_inicial():
+    Args:
+        conexao (sqlite3.Connection): A conexão com o banco de dados.
     """
-    Verifica se já existe um saldo inicial registrado no banco de dados.
+    cursor = conexao.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS senhas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            servico TEXT NOT NULL,
+            username TEXT NOT NULL,
+            senha TEXT NOT NULL
+        );
+    ''')
+    conexao.commit()
 
-    Retorna:
-    - saldo_inicial_registrado (bool): True se já existe um saldo inicial registrado, False caso contrário.
+def inserir_senha(conexao, servico, username, senha):
     """
-    conn = sqlite3.connect('financas.db')
-    c = conn.cursor()
-    c.execute('''SELECT COUNT(*) FROM transacoes WHERE descricao = 'Saldo Inicial' ''')
-    saldo_inicial_registrado = c.fetchone()[0]
-    conn.close()
-    return saldo_inicial_registrado > 0
+    Insere uma nova senha no banco de dados.
 
-def menu_principal():
+    Args:
+        conexao (sqlite3.Connection): A conexão com o banco de dados.
+        servico (str): O nome do serviço.
+        username (str): O username associado à senha.
+        senha (str): A senha a ser inserida.
     """
-    Exibe o menu principal e permite que o usuário interaja com o aplicativo de controle financeiro.
+    senha_criptografada = criptografar(senha)
+    cursor = conexao.cursor()
+    cursor.execute('''
+        INSERT INTO senhas (servico, username, senha)
+        VALUES (?, ?, ?)
+    ''', (servico, username, senha_criptografada))
+    conexao.commit()
+
+def consultar_senha(conexao, servico, palavra_chave):
     """
-    # Verificar se já existe um saldo inicial registrado
-    if not verificar_saldo_inicial():
-        saldo_inicial = float(input("Digite o saldo inicial da conta: "))
-        adicionar_transacao('receita', 'Saldo Inicial', saldo_inicial)
-        print("Saldo inicial definido com sucesso!")
+    Consulta a senha no banco de dados.
+
+    Args:
+        conexao (sqlite3.Connection): A conexão com o banco de dados.
+        servico (str): O nome do serviço para o qual deseja-se consultar a senha.
+        palavra_chave (str): A palavra-chave para acesso às senhas.
+    """
+    if palavra_chave != 'Roma':
+        print("Palavra-chave incorreta.")
+        return
+
+    cursor = conexao.cursor()
+    cursor.execute('''
+        SELECT username, senha FROM senhas WHERE servico = ?
+    ''', (servico,))
+    resultado = cursor.fetchone()
+
+    if resultado:
+        username, senha_criptografada = resultado
+        senha = descriptografar(senha_criptografada)
+        print(f"Username: {username}")
+        print(f"Senha: {senha}")
+    else:
+        print("Serviço não encontrado.")
+
+def main():
+    conexao = conectar_bd()
+    criar_tabela(conexao)
 
     while True:
-        print("-------APLICATIVO DE CONTROLE FINANCEIRO PESSOAL-------\n [1] Adicionar Receita.\n [2] Adicionar Despesa.\n [3] Ver Relatório de Gastos por Categoria\n [4] Ver Relatório de Receitas\n [5] Ver Extrato\n [6] Sair.")
-        escolha = input("Escolha uma opção: ")
+        print('-------GERADOR DE SENHAS-------')
+        opcao = input('[1] Gerar nova senha\n[2] Consultar senha\n[3] Sair\nEscolha uma opção: ')
 
-        if escolha == "1":
-            descricao = input("Digite a descrição da receita: ")
-            valor = float(input("Digite o valor da receita: "))
-            adicionar_transacao('receita', descricao, valor)
-            print("Receita adicionada com sucesso!")
-
-        elif escolha == "2":
-            descricao = input("Digite a descrição da despesa: ")
-            valor = float(input("Digite o valor da despesa: "))
-            adicionar_transacao('despesa', descricao, -valor)
-            print("Despesa adicionada com sucesso!")
-
-        elif escolha == "3":
-            relatorio = relatorio_gastos_por_categoria()
-            print("\nRelatório de Gastos por Categoria:")
-            for descricao, total in relatorio:
-                print(f'{descricao}: R$ {total:.2f}')
-            print(f'Total: R$ {total:.2f}')
-
-        elif escolha == "4":
-            receitas = relatorio_receitas()
-            print("\nRelatório de Receitas:")
-            for transacao in receitas:
-                print(f'{transacao[2]}: R$ {transacao[3]:.2f}')
-
-        elif escolha == "5":
-            transacoes, total = obter_transacoes()
-            print("\nExtrato:")
-            for transacao in transacoes:
-                print(f'{transacao[1]}: {transacao[2]} - R$ {transacao[3]:.2f}')
-            print(f'Total: R$ {total:.2f}')
-
-        elif escolha == "6":
-            print("Saindo...")
+        if opcao == '1':
+            servico = input("Nome do serviço: ")
+            username = input("Username: ")
+            comprimento = int(input("Comprimento da senha: "))
+            senha = gerar_senha(comprimento)
+            inserir_senha(conexao, servico, username, senha)
+            print("Senha gerada com sucesso")
+        elif opcao == '2':
+            servico = input("Nome do serviço: ")
+            palavra_chave = input("Digite a palavra-chave: ")
+            consultar_senha(conexao, servico, palavra_chave)
+        elif opcao == '3':
+            print('Saindo...')
             break
         else:
-            print("Opção inválida! Por favor, escolha uma opção válida.")
+            print('Opção inválida. Por favor, escolha uma opção válida.')
 
-criar_tabela()
 
-menu_principal()
+if __name__ == "__main__":
+    main()

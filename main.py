@@ -1,19 +1,13 @@
-def converter_listas_para_dict(chaves, valores):
-  return dict(zip(chaves, valores))
+  import csv
 
-def principal():
-  entrada_chaves = input("Insira as chaves separadas por espaços: ")
-  chaves = entrada_chaves.split()
+  def abrir_csv(nome_do_arquivo):
+      try:
+          with open(nome_do_arquivo, 'r') as csv_arquivo:
+              leitor_csv = csv.reader(csv_arquivo)
+              for linha in leitor_csv:
+                  print(linha)
+      except FileNotFoundError:
+          print("O arquivo não pôde ser encontrado.")
 
-  entrada_valores = input("Insira os valores separados por espaços: ")
-  valores = entrada_valores.split()
-
-  if len(chaves) != len(valores):
-      print("O número de chaves deve ser igual ao número de valores.")
-      return
-
-  dicionario = converter_listas_para_dict(chaves, valores)
-  print("Dicionário resultante:", dicionario)
-
-if __name__ == "__main__":
-  principal()
+  nome_do_arquivo_csv = "dados.csv"
+  abrir_csv(nome_do_arquivo_csv)

@@ -1,98 +1,165 @@
-class Contato:
-  def __init__(self, nome, endereco, data_nascimento, telefones=[], emails=[]):
-      self.nome = nome
-      self.endereco = endereco
-      self.data_nascimento = data_nascimento
-      self.telefones = telefones
-      self.emails = emails
+import sqlite3
 
-  def adicionar_telefone(self, telefone):
-      self.telefones.append(telefone)
+def criar_tabela():
+    """
+    Cria a tabela 'transacoes' no banco de dados 'financas.db', se ela não existir.
 
-  def adicionar_email(self, email):
-      self.emails.append(email)
+    A tabela 'transacoes' possui os seguintes campos:
+    - id (INTEGER): Chave primária da transação.
+    - tipo (TEXT): Tipo da transação, pode ser 'receita' ou 'despesa'.
+    - descricao (TEXT): Descrição da transação.
+    - valor (REAL): Valor da transação.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS transacoes (
+                    id INTEGER PRIMARY KEY,
+                    tipo TEXT,
+                    descricao TEXT,
+                    valor REAL
+                )''')
+    conn.commit()
+    conn.close()
 
-class Agenda:
-  def __init__(self):
-      self.contatos = {}
+def adicionar_transacao(tipo, descricao, valor):
+    """
+    Adiciona uma transação ao banco de dados.
 
-  def adicionar_contato(self, contato):
-      self.contatos[contato.nome] = contato
+    Parâmetros:
+    - tipo (str): Tipo da transação, pode ser 'receita' ou 'despesa'.
+    - descricao (str): Descrição da transação.
+    - valor (float): Valor da transação.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''INSERT INTO transacoes (tipo, descricao, valor) VALUES (?, ?, ?)''', (tipo, descricao, valor))
+    conn.commit()
+    conn.close()
 
-  def buscar_contato(self, nome):
-      if nome in self.contatos:
-          return self.contatos[nome]
-      else:
-          return None
+def obter_saldo():
+    """
+    Obtém o saldo atual da conta somando todas as transações registradas no banco de dados.
 
-  def remover_contato(self, nome):
-      if nome in self.contatos:
-          del self.contatos[nome]
-          print("Contato removido com sucesso.")
-      else:
-          print("Contato não encontrado.")
+    Retorna:
+    - saldo (float): Saldo atual da conta.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''SELECT SUM(valor) FROM transacoes''')
+    saldo = c.fetchone()[0]
+    conn.close()
+    return saldo if saldo else 0
 
-  def listar_contatos(self):
-      print("Lista de Contatos:")
-      for contato in self.contatos.values():
-          print("Nome:", contato.nome)
-          print("Endereço:", contato.endereco)
-          print("Data de Nascimento:", contato.data_nascimento)
-          print("Telefones:", contato.telefones)
-          print("Emails:", contato.emails)
-          print("--------------------")
+def relatorio_gastos_por_categoria():
+    """
+    Gera um relatório de gastos por categoria baseado nas descrições das transações.
 
-def menu():
-  print("\n==== Menu ====")
-  print("1. Adicionar Contato")
-  print("2. Buscar Contato")
-  print("3. Remover Contato")
-  print("4. Listar Contatos")
-  print("5. Sair")
+    Retorna:
+    - relatorio (list): Lista de tuplas, onde cada tupla contém a descrição da categoria e o total de gastos associado a ela.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''SELECT descricao, SUM(valor) FROM transacoes WHERE valor < 0 GROUP BY descricao''')
+    relatorio = c.fetchall()
+    conn.close()
+    return relatorio
 
-def main():
-  agenda = Agenda()
+def relatorio_receitas():
+    """
+    Gera um relatório de todas as receitas registradas no banco de dados.
 
-  while True:
-      menu()
-      opcao = input("Escolha uma opção: ")
+    Retorna:
+    - receitas (list): Lista de tuplas, onde cada tupla representa uma receita com os campos: id, tipo, descricao e valor.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''SELECT * FROM transacoes WHERE tipo = 'receita' ORDER BY id''')
+    receitas = c.fetchall()
+    conn.close()
+    return receitas
 
-      if opcao == "1":
-          nome = input("Nome: ")
-          endereco = input("Endereço: ")
-          data_nascimento = input("Data de Nascimento: ")
-          telefones = input("Telefones (separados por vírgula): ").split(",")
-          emails = input("Emails (separados por vírgula): ").split(",")
-          novo_contato = Contato(nome, endereco, data_nascimento, telefones, emails)
-          agenda.adicionar_contato(novo_contato)
-          print("Contato adicionado com sucesso.")
+def obter_transacoes():
+    """
+    Obtém todas as transações registradas no banco de dados e calcula o total de transações.
 
-      elif opcao == "2":
-          nome = input("Digite o nome do contato a ser buscado: ")
-          contato_encontrado = agenda.buscar_contato(nome)
-          if contato_encontrado:
-              print("Contato encontrado:")
-              print("Nome:", contato_encontrado.nome)
-              print("Endereço:", contato_encontrado.endereco)
-              print("Data de Nascimento:", contato_encontrado.data_nascimento)
-              print("Telefones:", contato_encontrado.telefones)
-              print("Emails:", contato_encontrado.emails)
-          else:
-              print("Contato não encontrado.")
+    Retorna:
+    - transacoes (list): Lista de tuplas, onde cada tupla representa uma transação com os campos: id, tipo, descricao e valor.
+    - total (float): Total de todas as transações.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''SELECT * FROM transacoes ORDER BY id''')
+    transacoes = c.fetchall()
+    total = sum(transacao[3] for transacao in transacoes)
+    conn.close()
+    return transacoes, total
 
-      elif opcao == "3":
-          nome = input("Digite o nome do contato a ser removido: ")
-          agenda.remover_contato(nome)
+def verificar_saldo_inicial():
+    """
+    Verifica se já existe um saldo inicial registrado no banco de dados.
 
-      elif opcao == "4":
-          agenda.listar_contatos()
+    Retorna:
+    - saldo_inicial_registrado (bool): True se já existe um saldo inicial registrado, False caso contrário.
+    """
+    conn = sqlite3.connect('financas.db')
+    c = conn.cursor()
+    c.execute('''SELECT COUNT(*) FROM transacoes WHERE descricao = 'Saldo Inicial' ''')
+    saldo_inicial_registrado = c.fetchone()[0]
+    conn.close()
+    return saldo_inicial_registrado > 0
 
-      elif opcao == "5":
-          print("Saindo...")
-          break
+def menu_principal():
+    """
+    Exibe o menu principal e permite que o usuário interaja com o aplicativo de controle financeiro.
+    """
+    # Verificar se já existe um saldo inicial registrado
+    if not verificar_saldo_inicial():
+        saldo_inicial = float(input("Digite o saldo inicial da conta: "))
+        adicionar_transacao('receita', 'Saldo Inicial', saldo_inicial)
+        print("Saldo inicial definido com sucesso!")
 
-      else:
-          print("Opção inválida. Tente novamente.")
+    while True:
+        print("-------APLICATIVO DE CONTROLE FINANCEIRO PESSOAL-------\n [1] Adicionar Receita.\n [2] Adicionar Despesa.\n [3] Ver Relatório de Gastos por Categoria\n [4] Ver Relatório de Receitas\n [5] Ver Extrato\n [6] Sair.")
+        escolha = input("Escolha uma opção: ")
 
-if __name__ == "__main__":
-  main()
+        if escolha == "1":
+            descricao = input("Digite a descrição da receita: ")
+            valor = float(input("Digite o valor da receita: "))
+            adicionar_transacao('receita', descricao, valor)
+            print("Receita adicionada com sucesso!")
+
+        elif escolha == "2":
+            descricao = input("Digite a descrição da despesa: ")
+            valor = float(input("Digite o valor da despesa: "))
+            adicionar_transacao('despesa', descricao, -valor)
+            print("Despesa adicionada com sucesso!")
+
+        elif escolha == "3":
+            relatorio = relatorio_gastos_por_categoria()
+            print("\nRelatório de Gastos por Categoria:")
+            for descricao, total in relatorio:
+                print(f'{descricao}: R$ {total:.2f}')
+            print(f'Total: R$ {total:.2f}')
+
+        elif escolha == "4":
+            receitas = relatorio_receitas()
+            print("\nRelatório de Receitas:")
+            for transacao in receitas:
+                print(f'{transacao[2]}: R$ {transacao[3]:.2f}')
+
+        elif escolha == "5":
+            transacoes, total = obter_transacoes()
+            print("\nExtrato:")
+            for transacao in transacoes:
+                print(f'{transacao[1]}: {transacao[2]} - R$ {transacao[3]:.2f}')
+            print(f'Total: R$ {total:.2f}')
+
+        elif escolha == "6":
+            print("Saindo...")
+            break
+        else:
+            print("Opção inválida! Por favor, escolha uma opção válida.")
+
+criar_tabela()
+
+menu_principal()

@@ -1,74 +1,103 @@
-import random
+def mostrar_assentos(salas, sala):
+  """
+  Mostra o mapa de assentos da sala especificada.
 
-questoes = [
-    ("Qual é a capital da Austrália?", ["a) Sydney", "b) Canberra", "c) Melbourne", "d) Brisbane"]),
-    ("Quem pintou a Mona Lisa?", ["a) Michelangelo", "b) Leonardo da Vinci", "c) Pablo Picasso", "d) Vincent van Gogh"]),
-    ("Qual é o maior planeta do nosso sistema solar?", ["a) Terra", "b) Marte", "c) Júpiter", "d) Saturno"]),
-    ("Qual é a montanha mais alta do mundo?", ["a) K2", "b) Monte Everest", "c) Mont Blanc", "d) Kilimanjaro"]),
-    ("Quem escreveu 'Romeu e Julieta'?", ["a) William Shakespeare", "b) Jane Austen", "c) Charles Dickens", "d) F. Scott Fitzgerald"]),
-    ("Qual é o elemento químico com o símbolo 'Fe'?", ["a) Ferro", "b) Cobre", "c) Ouro", "d) Prata"]),
-    ("Qual é o maior oceano do mundo?", ["a) Oceano Atlântico", "b) Oceano Índico", "c) Oceano Pacífico", "d) Oceano Ártico"]),
-    ("Quem foi o primeiro homem a pisar na lua?", ["a) Neil Armstrong", "b) Buzz Aldrin", "c) Yuri Gagarin", "d) Alan Shepard"]),
-    ("Qual é o animal terrestre mais rápido?", ["a) Guepardo", "b) Lebre", "c) Antílope", "d) Leão"]),
-    ("Quem é o autor de 'A Origem das Espécies'?", ["a) Charles Darwin", "b) Isaac Newton", "c) Albert Einstein", "d) Galileu Galilei"]),
-    ("Qual é o rio mais longo do mundo?", ["a) Rio Amazonas", "b) Rio Nilo", "c) Rio Yangtze", "d) Rio Mississippi"]),
-    ("Quem foi o primeiro presidente dos Estados Unidos?", ["a) George Washington", "b) Abraham Lincoln", "c) Thomas Jefferson", "d) John Adams"]),
-    ("Qual é a capital do Canadá?", ["a) Toronto", "b) Vancouver", "c) Ottawa", "d) Montreal"]),
-    ("Qual é o maior deserto do mundo?", ["a) Deserto do Saara", "b) Deserto de Gobi", "c) Deserto da Arábia", "d) Deserto de Kalahari"]),
-    ("Quem foi o primeiro homem a voar em um avião?", ["a) Orville Wright", "b) Wilbur Wright", "c) Amelia Earhart", "d) Alberto Santos Dumont"])
-]
+  Args:
+      salas (list): Uma lista de salas, onde cada sala é representada por uma lista de assentos.
+      sala (int): O número da sala para exibir o mapa de assentos.
+  """
+  print(f"Mapa de Assentos da Sala {sala}:")
+  print("  " + " ".join([str(i + 1) for i in range(len(salas[0][0]))]))
+  for i in range(len(salas[sala])):
+      print(chr(65 + i), end=" ")
+      for j in range(len(salas[sala][i])):
+          if salas[sala][i][j] == 'X':
+              print('X', end=" ")
+          else:
+              print('L' if salas[sala][i][j] == 'L' else 'X', end=" ")
+      print()
 
-respostas = [
-    "b",
-    "b",
-    "c",
-    "b",
-    "a",
-    "a",
-    "c",
-    "a",
-    "a",
-    "a",
-    "a",
-    "a",
-    "c",
-    "a",
-    "b"
-]
+def reservar_assento(salas, sala, fileira, assento, nome):
+  """
+  Reserva um assento na sala especificada para o cliente com o nome especificado.
 
-rodadas_maximas = 3
-rodadas = 0
+  Args:
+      salas (list): Uma lista de salas, onde cada sala é representada por uma lista de assentos.
+      sala (int): O número da sala onde o assento será reservado.
+      fileira (int): O número da fileira onde o assento está localizado.
+      assento (int): O número do assento na fileira.
+      nome (str): O nome do cliente que está fazendo a reserva.
 
-#Loop das questoes
-while rodadas < rodadas_maximas:
-    resposta = input('Está pronto para iniciar o jogo de trivia? [a]Sim [b]Não\n')
-    acertos = 0
-    if resposta == 'a':
-        for _ in range(5):
-            #Seleciona qual questao e resposta vai ser utilizado.
-            item = random.randint(0, 14)
-            questao_aleatoria, opcoes_resposta = questoes[item]
-            print(questao_aleatoria)
-            for opcao in opcoes_resposta:
-                print(opcao)
-            resposta = input('\nResposta: ')
-            print('Resposta correta: ', respostas[item])
-            #Verificar se a resposta esta correta
-            if resposta == respostas[item]:
-                acertos += 1
-                print('Certa resposta!')
-            else:
-                print('Errouu!')
-        if acertos == 5:
-            if rodadas < 2:
-                print('Parabéns! Acertou todas as', acertos, '\nIniciando nova rodada(3 no total).....')
-                rodadas += 1
-            else:
-                print('Parabéns! Jogo finalizado.')
-                break
-        else:
-            print('Quantidade de acertos: ', acertos, '\n Reiniciando o jogo....')
+  Returns:
+      bool: True se o assento foi reservado com sucesso, False caso contrário.
+  """
+  if fileira < 0 or fileira >= len(salas[sala]) or assento < 0 or assento >= len(salas[sala][0]):
+      print("Assento inválido.")
+      return False
+  if salas[sala][fileira][assento] != 'L':
+      print("Assento indisponível.")
+      return False
+  salas[sala][fileira][assento] = nome
+  print(f"Assento {chr(65 + fileira)}-{assento + 1} reservado para {nome}.")
+  return True
 
-    else:
-        print('Poxa vida....')
-        break
+def procurar_reserva(salas, nome):
+  """
+  Procura por uma reserva associada ao nome especificado e exibe informações sobre a reserva.
+
+  Args:
+      salas (list): Uma lista de salas, onde cada sala é representada por uma lista de assentos.
+      nome (str): O nome do cliente para procurar.
+
+  Returns:
+      None
+  """
+  for sala, assentos in enumerate(salas):
+      for i, fileira in enumerate(assentos):
+          for j, assento in enumerate(fileira):
+              if assento == nome:
+                  print(f"{nome} reservou o assento {chr(65 + i)}-{j + 1} na sala {sala + 1}.")
+                  return
+  print(f"{nome} não tem assento reservado.")
+
+def main():
+  num_salas = 2
+  num_fileiras = 5
+  assentos_por_fileira = 10
+  salas = [[['L' for _ in range(assentos_por_fileira)] for _ in range(num_fileiras)] for _ in range(num_salas)]
+
+  while True:
+      print('\n-------RESERVA DE INGRESSOS-------')
+      opcao = input('[1] Escolher filme\n[2] Pesquisar reserva por nome\n[3] Sair\nEscolha uma opção: ')
+
+      if opcao == '1':
+          filme = int(input('[1] Homem-Aranha\n[2] Vingadores\nEscolha um filme: '))
+          if filme == 1:
+              sala = 0
+              print("Filme escolhido: Homem-Aranha")
+          elif filme == 2:
+              sala = 1
+              print("Filme escolhido: Vingadores")
+          else:
+              print("Opção inválida. Escolha novamente.")
+              continue
+          mostrar_assentos(salas, sala)
+          fileira = input("Digite a letra da fileira desejada (A-E): ").upper()
+          assento = int(input("Digite o número do assento desejado (1-10): ")) - 1
+          nome = input("Digite seu nome: ")
+          if reservar_assento(salas, sala, ord(fileira) - 65, assento, nome):
+              print(f"Assento {chr(65 + ord(fileira) - 65)}-{assento + 1} reservado para {nome}.")
+          else:
+              print("Erro ao reservar o assento.")
+      elif opcao == '2':
+          nome = input("Digite o nome para pesquisar a reserva: ")
+          procurar_reserva(salas, nome)
+      elif opcao == '3':
+          print('Saindo...')
+          break
+      else:
+          print('Opção inválida. Por favor, escolha uma opção válida.')
+
+
+if __name__ == "__main__":
+  main()

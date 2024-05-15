@@ -1,34 +1,20 @@
-import os
+import csv
+import json
 
-def criar_arquivo_entrada(arquivo):
-    if not os.path.exists(arquivo):
-        with open(arquivo, 'w', encoding='utf-8') as file:
-            file.write("Exemplo de texto para contar palavras. Palavra palavra Palavra palavra.")
-            print("Arquivo de entrada criado:", arquivo)
+def converter_csv_para_json(arquivo_csv, arquivo_json):
+    # Abrindo o arquivo CSV para leitura
+    with open(arquivo_csv, 'r') as arquivo:
+        # Lendo os dados do arquivo CSV
+        leitor_csv = csv.DictReader(arquivo)
+        # Convertendo os dados para uma lista de dicionários
+        dados = [linha for linha in leitor_csv]
 
-def contar_palavras(arquivo):
-    contagem = {}
-    with open(arquivo, 'r', encoding='utf-8') as file:
-        for linha in file:
-            palavras = linha.split()
-            for palavra in palavras:
-                palavra = palavra.strip('.,!?;:').lower()
-                contagem[palavra] = contagem.get(palavra, 0) + 1
-    return contagem
+    # Escrevendo os dados em um arquivo JSON
+    with open(arquivo_json, 'w') as arquivo:
+        # Utilizando a biblioteca json para escrever os dados no arquivo JSON
+        json.dump(dados, arquivo, indent=4)
 
-def escrever_resultados(contagem, arquivo_saida):
-    with open(arquivo_saida, 'w', encoding='utf-8') as file:
-        palavras_ordenadas = sorted(contagem.items(), key=lambda x: x[1], reverse=True)
-        for palavra, ocorrencias in palavras_ordenadas:
-            file.write(f"{palavra}: {ocorrencias}\n")
+arquivo_csv = 'dados.csv'
+arquivo_json = 'dados.json'
 
-arquivo_entrada = "texto.txt"
-arquivo_saida = "resultados.txt"
-
-criar_arquivo_entrada(arquivo_entrada)
-
-contagem_palavras = contar_palavras(arquivo_entrada)
-
-escrever_resultados(contagem_palavras, arquivo_saida)
-
-print("Resultados foram escritos no arquivo:", arquivo_saida)
+converter_csv_para_json(arquivo_csv, arquivo_json)
